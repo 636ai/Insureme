@@ -1,0 +1,17 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+    - name: Stop and remove existing prod container
+      shell: |
+        docker stop insureme-prod || true
+        docker rm insureme-prod || true
+
+    - name: Pull latest image from ECR
+      shell: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 046264622692.dkr.ecr.us-east-1.amazonaws.com
+        docker pull 046264622692.dkr.ecr.us-east-1.amazonaws.com/insureme:latest
+
+    - name: Run new container on prod port 8082
+      shell: |
+        docker run -d --name insureme-prod -p 8082:8080 046264622692.dkr.ecr.us-east-1.amazonaws.com/insureme:latest

@@ -1,0 +1,17 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+    - name: Stop and remove existing test container
+      shell: |
+        docker stop insureme-test || true
+        docker rm insureme-test || true
+
+    - name: Pull latest image from ECR
+      shell: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 046264622692.dkr.ecr.us-east-1.amazonaws.com
+        docker pull 046264622692.dkr.ecr.us-east-1.amazonaws.com/insureme:latest
+
+    - name: Run new container on test port 8081
+      shell: |
+        docker run -d --name insureme-test -p 8081:8080 046264622692.dkr.ecr.us-east-1.amazonaws.com/insureme:latest
